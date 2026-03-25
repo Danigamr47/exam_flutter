@@ -1,0 +1,40 @@
+name: senpay
+description: Application de portefeuille électronique FinTech pour l'examen L3MM/GDA.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.10.8 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Icônes pour l'UI (Style Wave/Maxit)
+  cupertino_icons: ^1.0.2
+  font_awesome_flutter: ^10.4.0
+
+  # Gestion d'état (Exigence : state management simple)
+  provider: ^6.0.5
+
+  # Design et Typographie (Exigence : UI propre et cohérente)
+  google_fonts: ^5.1.0
+  flutter_svg: ^2.0.7
+
+  # Utilitaires de données et formatage (Exigence : Données locales)
+  intl: ^0.18.1
+  uuid: ^3.0.7
+  shared_preferences: ^2.2.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0
+
+flutter:
+  uses-material-design: true
+
+  # Section pour tes futurs assets (images, icônes)
+  #assets:
+    #- assets/images/
+    #- assets/icons/
