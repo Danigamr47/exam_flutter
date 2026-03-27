@@ -20,6 +20,7 @@ dependencies:
   # Design et Typographie (Exigence : UI propre et cohérente)
   google_fonts: ^5.1.0
   flutter_svg: ^2.0.7
+  qr_flutter: ^4.1.0
 
   # Utilitaires de données et formatage (Exigence : Données locales)
   intl: ^0.18.1

@@ -3,7 +3,7 @@ class UserModel {
   final String phoneNumber;
   final String idNumber;
   final String pin; // Nouveau : stockage du PIN choisi
-  double balance;
+  final double balance;
   List<String> favorites;
 
   UserModel({
@@ -14,6 +14,24 @@ class UserModel {
     this.balance = 0.0,
     this.favorites = const [],
   });
+
+  UserModel copyWith({
+    String? fullName,
+    String? phoneNumber,
+    String? idNumber,
+    String? pin,
+    double? balance,
+    List<String>? favorites,
+  }) {
+    return UserModel(
+      fullName: fullName ?? this.fullName,
+      phoneNumber: phoneNumber ?? this.phoneNumber,
+      idNumber: idNumber ?? this.idNumber,
+      pin: pin ?? this.pin,
+      balance: balance ?? this.balance,
+      favorites: favorites ?? this.favorites,
+    );
+  }
 
   // Conversion en JSON pour la sauvegarde
   Map<String, dynamic> toJson() => {

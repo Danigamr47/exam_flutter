@@ -5,10 +5,12 @@ import '../providers/auth_provider.dart';
 import '../theme/app_theme.dart';
 
 // Importations des composants du projet
-import '../models/transaction_model.dart';
+//import '../models/transaction_model.dart';
 import 'transfer_screen.dart';
 import 'bill_payment_screen.dart';
 import 'qr_scanner_screen.dart';
+import 'notifications_screen.dart';
+import 'my_qr_code_screen.dart';
 import 'profile_screen.dart';
 import '../widgets/pin_dialog.dart';
 
@@ -33,53 +35,99 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: const Text("SENPAY"),
         actions: [
-          IconButton(
-              onPressed: () async {
-                // Demande du PIN avant déconnexion
-                String? pin = await showDialog(
-                  context: context,
-                  builder: (_) => PinDialog(),
-                );
-                
+          Stack(
+            children: [
+              IconButton(
+                onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationsScreen())),
+                icon: const Icon(Icons.notifications_outlined, color: Colors.black, size: 28),
+              ),
+              if (authProvider.unreadNotificationsCount > 0)
+                Positioned(
+                  right: 8,
+                  top: 8,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+                    constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                    child: Text(
+                      '${authProvider.unreadNotificationsCount}',
+                      style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          PopupMenuButton<String>(
+            onSelected: (value) async {
+              if (value == 'profile') {
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileScreen()));
+              } else if (value == 'logout') {
+                String? pin = await showDialog(context: context, builder: (_) => PinDialog());
                 if (pin != null && authProvider.verifyPin(pin)) {
                   authProvider.logout();
                 } else if (pin != null) {
                   ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("PIN incorrect"), backgroundColor: Colors.red));
                 }
-              },
-              icon: const Icon(Icons.logout, color: Colors.black)
-          )
+              }
+            },
+            icon: const Icon(Icons.account_circle_outlined, color: Colors.black, size: 28),
+            itemBuilder: (context) => [
+              const PopupMenuItem(value: 'profile', child: ListTile(leading: Icon(Icons.person_outline), title: Text("Mon Profil"))),
+              const PopupMenuItem(value: 'logout', child: ListTile(leading: Icon(Icons.logout, color: Colors.red), title: Text("Déconnexion", style: TextStyle(color: Colors.red)))),
+            ],
+          ),
         ],
       ),
       body: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
         child: Column(
           children: [
-            // CARTE SOLDE AMÉLIORÉE
             Container(
-              margin: const EdgeInsets.all(20),
+              margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
               padding: const EdgeInsets.all(24),
+              width: double.infinity,
               decoration: BoxDecoration(
-                color: AppTheme.primaryColor,
-                borderRadius: BorderRadius.circular(24),
+                gradient: const LinearGradient(
+                  colors: [AppTheme.primaryColor, Color(0xFF8E24AA)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(32),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppTheme.primaryColor.withOpacity(0.4),
+                    blurRadius: 20,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
               ),
-              child: Column(
+              child: Stack(
                 children: [
-                  Text("Bonjour, ${user?.fullName ?? 'Utilisateur'}",
-                      style: const TextStyle(color: Colors.white70)),
-                  const SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                  Positioned(
+                    right: -20, top: -20,
+                    child: CircleAvatar(radius: 50, backgroundColor: Colors.white.withOpacity(0.1)),
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        _isBalanceVisible 
-                          ? currencyFormatter.format(user?.balance ?? 0) 
-                          : "•••••• F CFA",
-                        style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold),
+                      Text("Solde disponible", style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 14)),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Text(
+                            _isBalanceVisible ? currencyFormatter.format(user?.balance ?? 0) : "•••••• F CFA",
+                            style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.w800, letterSpacing: -1),
+                          ),
+                          const Spacer(),
+                          IconButton(
+                            icon: Icon(_isBalanceVisible ? Icons.visibility_rounded : Icons.visibility_off_rounded, color: Colors.white70),
+                            onPressed: () => setState(() => _isBalanceVisible = !_isBalanceVisible),
+                          ),
+                        ],
                       ),
-                      IconButton(
-                        icon: Icon(_isBalanceVisible ? Icons.visibility : Icons.visibility_off, color: Colors.white54),
-                        onPressed: () => setState(() => _isBalanceVisible = !_isBalanceVisible),
-                      ),
+                      const SizedBox(height: 20),
+                      Text(user?.fullName.toUpperCase() ?? "", style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600, letterSpacing: 1.2)),
                     ],
                   ),
                 ],
@@ -101,6 +149,14 @@ class _HomeScreenState extends State<HomeScreen> {
                           MaterialPageRoute(
                               builder: (_) => const TransferScreen()))),
                   _buildActionButton(
+                      icon: Icons.qr_code_2_rounded,
+                      label: "Recevoir",
+                      color: Colors.purple,
+                      onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => const MyQrCodeScreen()))),
+                  _buildActionButton(
                       icon: Icons.receipt_long,
                       label: "Factures",
                       color: Colors.orange,
@@ -116,21 +172,11 @@ class _HomeScreenState extends State<HomeScreen> {
                           context,
                           MaterialPageRoute(
                               builder: (_) => const QrScannerScreen()))),
-                  _buildActionButton(
-                      icon: Icons.more_horiz,
-                      label: "Plus",
-                      color: Colors.grey,
-                      onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (_) => const ProfileScreen())
-                          )
-                  ),
                 ],
               ),
             ),
 
-            const SizedBox(height: 30),
+            const SizedBox(height: 40),
 
             // SECTION HISTORIQUE
             Padding(
@@ -152,39 +198,46 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Text("Aucune transaction récente",
                         style: TextStyle(color: Colors.grey)),
                   )
-                : ListView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: authProvider.transactions.length,
-                    itemBuilder: (context, index) {
-                      final transaction = authProvider.transactions[index];
-                      final isNegative = transaction.amount < 0;
-                      return ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: isNegative
-                              ? Colors.red.withOpacity(0.1)
-                              : Colors.green.withOpacity(0.1),
-                          child: Icon(
-                            isNegative
-                                ? Icons.arrow_outward
-                                : Icons.arrow_downward,
-                            color: isNegative ? Colors.red : Colors.green,
+                : Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                    child: ListView.separated(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: authProvider.transactions.length,
+                      separatorBuilder: (context, index) => Divider(color: Colors.grey.shade50, height: 1),
+                      itemBuilder: (context, index) {
+                        final transaction = authProvider.transactions[index];
+                        final isNegative = transaction.amount < 0;
+                        return ListTile(
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          leading: Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: isNegative ? Colors.red.shade50 : Colors.green.shade50,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              isNegative ? Icons.arrow_upward : Icons.arrow_downward,
+                              color: isNegative ? Colors.red : Colors.green,
+                              size: 20,
+                            ),
                           ),
-                        ),
-                        title: Text(transaction.title,
-                            style:
-                                const TextStyle(fontWeight: FontWeight.bold)),
-                        subtitle: Text(DateFormat('dd/MM/yyyy HH:mm')
-                            .format(transaction.date)),
-                        trailing: Text(
-                          currencyFormatter.format(transaction.amount),
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: isNegative ? Colors.red : Colors.green,
+                          title: Text(transaction.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                          subtitle: Text(DateFormat('dd MMM, HH:mm').format(transaction.date), style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
+                          trailing: Text(
+                            currencyFormatter.format(transaction.amount),
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: isNegative ? Colors.red.shade700 : Colors.green.shade700,
+                            ),
                           ),
-                        ),
-                      );
-                    },
+                        );
+                      },
+                    ),
                   ),
           ],
         ),
@@ -203,13 +256,20 @@ class _HomeScreenState extends State<HomeScreen> {
         GestureDetector(
           onTap: onTap,
           child: Container(
-            width: 60,
-            height: 60,
+            width: 65,
+            height: 65,
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(18),
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.04),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
-            child: Icon(icon, color: color, size: 28),
+            child: Icon(icon, color: color, size: 30),
           ),
         ),
         const SizedBox(height: 8),

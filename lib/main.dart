@@ -21,16 +21,19 @@ class SenPayApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final auth = Provider.of<AuthProvider>(context);
     return MaterialApp(
       title: 'SENPAY',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: auth.isDarkMode ? ThemeMode.dark : ThemeMode.light,
       // Logique de redirection automatique
       home: Consumer<AuthProvider>(
         builder: (context, auth, _) {
           return auth.isAuthenticated 
               ? const HomeScreen() 
-              : const RegisterScreen();
+              : const AuthScreen();
         },
       ),
     );
