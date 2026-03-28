@@ -4,6 +4,7 @@ class UserModel {
   final String idNumber;
   final String pin; // Nouveau : stockage du PIN choisi
   final double balance;
+  final double vaultBalance; // Nouveau : solde du coffre-fort
   List<String> favorites;
 
   UserModel({
@@ -12,6 +13,7 @@ class UserModel {
     required this.idNumber,
     required this.pin,
     this.balance = 0.0,
+    this.vaultBalance = 0.0,
     this.favorites = const [],
   });
 
@@ -21,6 +23,7 @@ class UserModel {
     String? idNumber,
     String? pin,
     double? balance,
+    double? vaultBalance,
     List<String>? favorites,
   }) {
     return UserModel(
@@ -29,6 +32,7 @@ class UserModel {
       idNumber: idNumber ?? this.idNumber,
       pin: pin ?? this.pin,
       balance: balance ?? this.balance,
+      vaultBalance: vaultBalance ?? this.vaultBalance,
       favorites: favorites ?? this.favorites,
     );
   }
@@ -40,6 +44,7 @@ class UserModel {
         'idNumber': idNumber,
         'pin': pin,
         'balance': balance,
+        'vaultBalance': vaultBalance,
         'favorites': favorites,
       };
 
@@ -50,6 +55,7 @@ class UserModel {
         idNumber: json['idNumber'],
         pin: json['pin'],
         balance: (json['balance'] as num).toDouble(),
+        vaultBalance: (json['vaultBalance'] as num?)?.toDouble() ?? 0.0,
         favorites: List<String>.from(json['favorites'] ?? []),
       );
 }

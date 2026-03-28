@@ -12,6 +12,8 @@ import 'qr_scanner_screen.dart';
 import 'notifications_screen.dart';
 import 'my_qr_code_screen.dart';
 import 'profile_screen.dart';
+import 'coffre_screen.dart';
+import 'transport_screen.dart';
 import '../widgets/pin_dialog.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -137,41 +139,49 @@ class _HomeScreenState extends State<HomeScreen> {
             // SECTION ACTIONS (Transfert, Factures, Scanner)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
+              child: Column(
                 children: [
-                  _buildActionButton(
-                      icon: Icons.swap_horiz,
-                      label: "Transfert",
-                      color: Colors.blue,
-                      onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (_) => const TransferScreen()))),
-                  _buildActionButton(
-                      icon: Icons.qr_code_2_rounded,
-                      label: "Recevoir",
-                      color: Colors.purple,
-                      onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (_) => const MyQrCodeScreen()))),
-                  _buildActionButton(
-                      icon: Icons.receipt_long,
-                      label: "Factures",
-                      color: Colors.orange,
-                      onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (_) => const BillPaymentScreen()))),
-                  _buildActionButton(
-                      icon: Icons.qr_code_scanner,
-                      label: "Scanner",
-                      color: AppTheme.primaryColor,
-                      onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (_) => const QrScannerScreen()))),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      _buildActionButton(
+                          icon: Icons.swap_horiz,
+                          label: "Transfert",
+                          color: Colors.blue,
+                          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TransferScreen()))),
+                      _buildActionButton(
+                          icon: Icons.lock_outline_rounded,
+                          label: "Coffre",
+                          color: Colors.indigo,
+                          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const VaultScreen()))),
+                      _buildActionButton(
+                          icon: Icons.receipt_long,
+                          label: "Factures",
+                          color: Colors.orange,
+                          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const BillPaymentScreen()))),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      _buildActionButton(
+                          icon: Icons.directions_bus_filled_outlined,
+                          label: "Transport",
+                          color: Colors.teal,
+                          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TransportScreen()))),
+                      _buildActionButton(
+                          icon: Icons.qr_code_scanner,
+                          label: "Scanner",
+                          color: AppTheme.primaryColor,
+                          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const QrScannerScreen()))),
+                      _buildActionButton(
+                          icon: Icons.qr_code_2_rounded,
+                          label: "Ma Carte",
+                          color: Colors.purple,
+                          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MyQrCodeScreen()))),
+                    ],
+                  ),
                 ],
               ),
             ),

@@ -169,6 +169,72 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
+  // Paiement Transport (TER, BRT, Dem Dikk, Yango)
+  bool payTransport(String serviceName, double amount) {
+    if (_currentUser != null && _currentUser!.balance >= amount) {
+      final double newBalance = _currentUser!.balance - amount;
+      _currentUser = _currentUser!.copyWith(balance: newBalance);
+      _transactions.insert(0, TransactionModel(
+        id: const Uuid().v4(),
+        title: "Transport - $serviceName",
+        amount: -amount,
+        date: DateTime.now(),
+        type: TransactionType.facture,
+      ));
+      _addNotification("Paiement Transport", "Votre trajet $serviceName (${amount.toStringAsFixed(0)} F CFA) a été payé.");
+      notifyListeners();
+      _saveData();
+      return true;
+    } else {
+      _addNotification("Échec Transport", "Le paiement pour $serviceName a échoué (Solde insuffisant).");
+      return false;
+    }
+  }
+
+  // Mettre de l'argent dans le coffre
+  bool addToVault(double amount) {
+    if (_currentUser != null && _currentUser!.balance >= amount) {
+      _currentUser = _currentUser!.copyWith(
+        balance: _currentUser!.balance - amount,
+        vaultBalance: _currentUser!.vaultBalance + amount,
+      );
+      _transactions.insert(0, TransactionModel(
+        id: const Uuid().v4(),
+        title: "Dépôt vers Coffre",
+        amount: -amount,
+        date: DateTime.now(),
+        type: TransactionType.envoi,
+      ));
+      _addNotification("Coffre-fort", "Vous avez mis ${amount.toStringAsFixed(0)} F CFA dans votre coffre.");
+      notifyListeners();
+      _saveData();
+      return true;
+    }
+    return false;
+  }
+
+  // Récupérer de l'argent du coffre
+  bool withdrawFromVault(double amount) {
+    if (_currentUser != null && _currentUser!.vaultBalance >= amount) {
+      _currentUser = _currentUser!.copyWith(
+        balance: _currentUser!.balance + amount,
+        vaultBalance: _currentUser!.vaultBalance - amount,
+      );
+      _transactions.insert(0, TransactionModel(
+        id: const Uuid().v4(),
+        title: "Retrait du Coffre",
+        amount: amount,
+        date: DateTime.now(),
+        type: TransactionType.reception,
+      ));
+      _addNotification("Coffre-fort", "Vous avez récupéré ${amount.toStringAsFixed(0)} F CFA de votre coffre.");
+      notifyListeners();
+      _saveData();
+      return true;
+    }
+    return false;
+  }
+
   // Mise à jour des informations utilisateur
   void updateUserInfo(String newName) {
     if (_currentUser != null) {

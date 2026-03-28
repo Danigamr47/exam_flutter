@@ -21,6 +21,7 @@ class _BillPaymentScreenState extends State<BillPaymentScreen> {
     ServiceModel(id: '4', name: 'WOYOFAL (Achat crédit)', logoPath: '', color: Colors.yellow.shade700),
     ServiceModel(id: '2', name: 'SEN’EAU', logoPath: '', color: Colors.blue),
     ServiceModel(id: '3', name: 'RAPIDO', logoPath: '', color: Colors.red),
+    ServiceModel(id: '5', name: 'Groupe ISI', logoPath: '', color: Colors.blue.shade900),
   ];
 
   final _formKey = GlobalKey<FormState>();
@@ -33,6 +34,7 @@ class _BillPaymentScreenState extends State<BillPaymentScreen> {
     if (serviceName.contains("WOYOFAL")) return Icons.flash_on_rounded;
     if (serviceName.contains("SEN’EAU")) return Icons.water_drop_outlined;
     if (serviceName.contains("RAPIDO")) return Icons.directions_car_filled_outlined;
+    if (serviceName.contains("ISI")) return Icons.school_outlined;
     return Icons.business_center_outlined;
   }
 
@@ -42,6 +44,7 @@ class _BillPaymentScreenState extends State<BillPaymentScreen> {
     if (serviceName.contains("SENELEC")) return 12;
     if (serviceName.contains("SEN’EAU")) return 10;
     if (serviceName.contains("RAPIDO")) return 8;
+    if (serviceName.contains("ISI")) return 8;
     return 14; // Valeur par défaut
   }
 
@@ -96,9 +99,17 @@ class _BillPaymentScreenState extends State<BillPaymentScreen> {
     final int requiredLength = _getRequiredLength(service.name);
     final auth = Provider.of<AuthProvider>(context, listen: false);
 
+    // Liste des mois pour le paiement de scolarité (ISI)
+    final List<String> months = [
+      "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
+      "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"
+    ];
+    String? selectedMonth;
+
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setStateDialog) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
         titlePadding: EdgeInsets.zero,
         title: Container(
@@ -135,15 +146,38 @@ class _BillPaymentScreenState extends State<BillPaymentScreen> {
               const SizedBox(height: 20),
               TextFormField(
                 controller: refController,
-                keyboardType: TextInputType.number,
+                keyboardType: service.name.contains("ISI") ? TextInputType.text : TextInputType.number,
                 decoration: InputDecoration(
-                  labelText: "Numéro de référence",
+                  labelText: service.name.contains("ISI") ? "Matricule Étudiant" : "Numéro de référence",
                   hintText: "Saisir les $requiredLength chiffres",
-                  prefixIcon: const Icon(Icons.tag),
-                  helperText: "Référence client ou compteur",
+                  prefixIcon: Icon(service.name.contains("ISI") ? Icons.school : Icons.tag),
+                  helperText: service.name.contains("ISI") ? "Matricule de l'étudiant" : "Référence client ou compteur",
                 ),
                 validator: (v) => v!.length != requiredLength ? "Référence invalide" : null,
               ),
+              
+              // Champ spécifique pour choisir le mois (ISI uniquement)
+              if (service.name.contains("ISI")) ...[
+                const SizedBox(height: 20),
+                DropdownButtonFormField<String>(
+                  value: selectedMonth,
+                  decoration: const InputDecoration(
+                    labelText: "Mois à régler",
+                    prefixIcon: Icon(Icons.calendar_month),
+                  ),
+                  items: months.map((m) => DropdownMenuItem(
+                    value: m,
+                    child: Text(m),
+                  )).toList(),
+                  onChanged: (val) {
+                    setStateDialog(() {
+                      selectedMonth = val;
+                    });
+                  },
+                  validator: (v) => v == null ? "Veuillez choisir le mois" : null,
+                ),
+              ],
+
               const SizedBox(height: 20),
               TextFormField(
                 controller: amountController,
@@ -155,7 +189,14 @@ class _BillPaymentScreenState extends State<BillPaymentScreen> {
                   prefixIcon: const Icon(Icons.payments_outlined),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
                 ),
-                validator: (v) => (double.tryParse(v ?? "") ?? 0) <= 0 ? "Montant invalide" : null,
+                validator: (v) {
+                  final amount = double.tryParse(v ?? "") ?? 0;
+                  if (amount <= 0) return "Montant invalide";
+                  if (service.name.contains("ISI") && amount < 70000) {
+                    return "Le montant minimum pour ISI est de 70 000 F CFA";
+                  }
+                  return null;
+                },
               ),
               const SizedBox(height: 8),
               Row(
@@ -187,7 +228,13 @@ class _BillPaymentScreenState extends State<BillPaymentScreen> {
                     onPressed: () {
                       if (_formKey.currentState!.validate()) {
                         Navigator.pop(ctx);
-                        _processPayment(service, refController.text, double.parse(amountController.text));
+                        String finalReference = refController.text;
+                        // On concatène le mois à la référence pour l'historique
+                        if (service.name.contains("ISI") && selectedMonth != null) {
+                          finalReference = "${refController.text} ($selectedMonth)";
+                        }
+                        
+                        _processPayment(service, finalReference, double.parse(amountController.text));
                       }
                     },
                     child: const Text("Confirmer le paiement"),
@@ -196,8 +243,7 @@ class _BillPaymentScreenState extends State<BillPaymentScreen> {
               ],
             ),
           ),
-        ],
-      ),
+        ]      )),
     );
   }
 
@@ -305,7 +351,11 @@ class _BillPaymentScreenState extends State<BillPaymentScreen> {
                     ),
                     title: Text(service.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
                     subtitle: Text(
-                      service.name.contains("WOYOFAL") ? "Achat de jetons" : "Régler ma facture",
+                      service.name.contains("WOYOFAL") 
+                          ? "Achat de jetons" 
+                          : (service.name.contains("ISI") 
+                              ? "Mensualité étudiant" 
+                              : "Régler ma facture"),
                       style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
                     ),
                     trailing: Row(
