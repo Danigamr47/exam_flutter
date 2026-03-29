@@ -13,9 +13,7 @@ void main() async {
 
   runApp(
     MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => AuthProvider()),
-      ],
+      providers: [ChangeNotifierProvider(create: (_) => AuthProvider())],
       child: const SenPayApp(),
     ),
   );
@@ -35,14 +33,41 @@ class SenPayApp extends StatelessWidget {
       darkTheme: AppTheme.darkTheme,
       themeMode: auth.isDarkMode ? ThemeMode.dark : ThemeMode.light,
 
-      // Routes
-      initialRoute: '/',
-      routes: {
-        '/':      (context) => const SplashScreen(),
-        '/register': (context) => const AuthScreen(),
-        '/auth':  (context) => const AuthScreen(),
-        '/home':  (context) => const HomeScreen(),
-      },
+      home: Consumer<AuthProvider>(
+        builder: (context, auth, _) {
+          return const _AppNavigator();
+        },
+      ),
     );
+  }
+}
+
+class _AppNavigator extends StatefulWidget {
+  const _AppNavigator();
+
+  @override
+  State<_AppNavigator> createState() => _AppNavigatorState();
+}
+
+class _AppNavigatorState extends State<_AppNavigator> {
+  bool _showSplash = true;
+
+  @override
+  void initState() {
+    super.initState();
+    // Splash Screen pendant 3 secondes
+    Future.delayed(const Duration(seconds: 3), () {
+      if (mounted) {
+        setState(() => _showSplash = false);
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_showSplash) return const SplashScreen();
+
+    final auth = Provider.of<AuthProvider>(context);
+    return auth.isAuthenticated ? const HomeScreen() : const AuthScreen();
   }
 }

@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../providers/auth_provider.dart';
 import '../theme/app_theme.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -35,30 +33,12 @@ class _SplashScreenState extends State<SplashScreen>
     );
 
     _controller.forward();
-
-    // Rediriger après 3 secondes
-    Future.delayed(const Duration(seconds: 3), () {
-      _redirect();
-    });
   }
 
   @override
   void dispose() {
     _controller.dispose();
     super.dispose();
-  }
-
-  void _redirect() {
-    if (!mounted) return;
-    final auth = Provider.of<AuthProvider>(context, listen: false);
-
-    if (auth.isAuthenticated) {
-      // Déjà connecté → Dashboard
-      Navigator.pushReplacementNamed(context, '/home');
-    } else {
-      // Pas connecté → Auth
-      Navigator.pushReplacementNamed(context, '/auth');
-    }
   }
 
   @override
@@ -79,7 +59,6 @@ class _SplashScreenState extends State<SplashScreen>
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
 
-                        // Logo
                         Container(
                           width: 120,
                           height: 120,
@@ -103,7 +82,6 @@ class _SplashScreenState extends State<SplashScreen>
 
                         const SizedBox(height: 24),
 
-                        // Nom
                         const Text(
                           'SENPAY',
                           style: TextStyle(
@@ -116,7 +94,6 @@ class _SplashScreenState extends State<SplashScreen>
 
                         const SizedBox(height: 8),
 
-                        // Slogan
                         Text(
                           'Envoyez, recevez, payez facilement',
                           style: TextStyle(
@@ -132,7 +109,6 @@ class _SplashScreenState extends State<SplashScreen>
               ),
             ),
 
-            // Bas de l'écran
             FadeTransition(
               opacity: _fadeAnimation,
               child: const Padding(
