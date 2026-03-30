@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../providers/auth_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/pin_dialog.dart';
+import '../widgets/custom_snackbar.dart';
 
 class VaultScreen extends StatefulWidget {
   const VaultScreen({super.key});
@@ -32,9 +33,8 @@ class _VaultScreenState extends State<VaultScreen> {
     String? pin = await showDialog<String>(context: context, builder: (_) => PinDialog());
     if (pin == null || !auth.verifyPin(pin)) {
       if (pin != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Code PIN incorrect"), backgroundColor: Colors.red),
-        );
+        CustomSnackbar.error(context, 'Le code PIN saisi est incorrect',
+  title: 'PIN invalide');
       }
       return;
     }
@@ -43,16 +43,11 @@ class _VaultScreenState extends State<VaultScreen> {
 
     if (success) {
       _amountController.clear();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(isAdding ? "Argent mis en sécurité !" : "Argent récupéré !"),
-          backgroundColor: Colors.green,
-        ),
-      );
+      CustomSnackbar.success(context, isAdding ? 'Argent mis en sécurité dans le coffre' : 'Argent retiré du coffre',
+  title: isAdding ? 'Coffre-fort' : 'Coffre-fort');
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Solde insuffisant"), backgroundColor: Colors.red),
-      );
+      CustomSnackbar.error(context, 'Solde insuffisant pour effectuer cette opération',
+  title: 'Opération échouée');
     }
   }
 

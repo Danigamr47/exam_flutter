@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../widgets/pin_dialog.dart';
 import '../providers/auth_provider.dart';
+import '../widgets/custom_snackbar.dart';
 
 
 class TransferScreen extends StatefulWidget {
@@ -39,7 +40,7 @@ class _TransferScreenState extends State<TransferScreen> {
       final amount = double.tryParse(_amountController.text) ?? 0;
       
       if (amount <= 0) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Veuillez saisir un montant valide")));
+        CustomSnackbar.error(context, 'Veuillez saisir un montant valide');
         return;
       }
 
@@ -47,18 +48,13 @@ class _TransferScreenState extends State<TransferScreen> {
 
       if (success) {
         Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Transfert réussi !"), backgroundColor: Colors.green),
-        );
+        CustomSnackbar.success(context, 'Transfert effectué avec succès !');
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Solde insuffisant"), backgroundColor: Colors.red),
-        );
+       CustomSnackbar.error(context, 'Votre solde est insuffisant pour ce transfert');
       }
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Code PIN incorrect"), backgroundColor: Colors.red),
-      );
+      CustomSnackbar.error(context, 'Le code PIN saisi est incorrect',
+  title: 'PIN invalide');
     }
   }
 }
@@ -95,7 +91,7 @@ class _TransferScreenState extends State<TransferScreen> {
                           children: [
                             CircleAvatar(
                               backgroundColor: Colors.blue.shade100,
-                              child: Text(contact['name']![0]),
+                                                      child: Text(contact['name']![0]),
                             ),
                             const SizedBox(height: 5),
                             Text(contact['name']!, 
